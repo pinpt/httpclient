@@ -91,7 +91,7 @@ func (c *HTTPClient) Post(url string, contentType string, body io.Reader) (*http
 // Do will invoke the http request
 func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	var count, page int
-	streams := newMuliReader()
+	var streams *multiReader
 	started := time.Now()
 	maxDuration := c.config.Retryable.RetryMaxDuration()
 	req = req.WithContext(c.ctx)
@@ -113,6 +113,9 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 					// reset our count and timestamp since we're going to loop and it's OK
 					count = 0
 					started = time.Now()
+					if streams == nil {
+						streams = newMuliReader()
+					}
 					// remember our stream since we're going to need to return it instead
 					streams.Add(resp.Body)
 					// don't reuse this request again
