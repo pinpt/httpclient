@@ -18,6 +18,16 @@ func TestNoRetry(t *testing.T) {
 	assert.Equal(time.Second, retry.RetryMaxDuration())
 }
 
+func TestNoRetryNew(t *testing.T) {
+	assert := assert.New(t)
+	retry := NewNoRetry()
+	assert.False(retry.RetryError(ErrRequestTimeout))
+	assert.False(retry.RetryResponse(&http.Response{}))
+	assert.Equal(time.Duration(0), retry.RetryDelay(1))
+	assert.Equal(time.Duration(0), retry.RetryDelay(2))
+	assert.Equal(time.Second, retry.RetryMaxDuration())
+}
+
 func TestBackoffRetry(t *testing.T) {
 	assert := assert.New(t)
 	retry := NewBackoffRetry(time.Millisecond, 10*time.Millisecond, time.Second, 1.5)

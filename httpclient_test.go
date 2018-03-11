@@ -91,14 +91,14 @@ func (r *retry) RetryMaxDuration() time.Duration {
 	return time.Second
 }
 
-type paginate func(page int, resp *http.Response) (bool, *http.Request)
+type paginate func(page int, req *http.Request, resp *http.Response) (bool, *http.Request)
 
 type paginator struct {
 	paginate paginate
 }
 
-func (p *paginator) HasMore(page int, resp *http.Response) (bool, *http.Request) {
-	return p.paginate(page, resp)
+func (p *paginator) HasMore(page int, req *http.Request, resp *http.Response) (bool, *http.Request) {
+	return p.paginate(page, req, resp)
 }
 
 func TestNewHTTPClientInvalidClient(t *testing.T) {
@@ -336,7 +336,7 @@ func TestNewHTTPClientPagination(t *testing.T) {
 	tc := &testClient{}
 	var paged bool
 	p := &paginator{
-		paginate: func(page int, resp *http.Response) (bool, *http.Request) {
+		paginate: func(page int, req *http.Request, resp *http.Response) (bool, *http.Request) {
 			paged = true
 			if page > 1 {
 				return false, nil
@@ -366,7 +366,7 @@ func TestNewHTTPClientPaginationNone(t *testing.T) {
 	tc := &testClient{}
 	var paged bool
 	p := &paginator{
-		paginate: func(page int, resp *http.Response) (bool, *http.Request) {
+		paginate: func(page int, req *http.Request, resp *http.Response) (bool, *http.Request) {
 			paged = true
 			if page > 1 {
 				return false, nil

@@ -27,8 +27,8 @@ func (r *noRetry) RetryMaxDuration() time.Duration {
 	return time.Second
 }
 
-// NewRetry will return a struct that implements Retryable
-func NewRetry() Retryable {
+// NewNoRetry will return a struct that implements Retryable but doesn't retry at all
+func NewNoRetry() Retryable {
 	return &noRetry{}
 }
 

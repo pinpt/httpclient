@@ -23,5 +23,5 @@ type Retryable interface {
 
 // Paginator is an interface for handling request pagination
 type Paginator interface {
-	HasMore(page int, resp *http.Response) (bool, *http.Request)
+	HasMore(page int, req *http.Request, resp *http.Response) (bool, *http.Request)
 }

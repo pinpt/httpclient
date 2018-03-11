@@ -109,7 +109,7 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 		} else {
 			// if OK and a GET request type, see if we need to paginate
 			if resp.StatusCode == http.StatusOK && req.Method == http.MethodGet {
-				if ok, newreq := c.config.Paginator.HasMore(page, resp); ok {
+				if ok, newreq := c.config.Paginator.HasMore(page, req, resp); ok {
 					// reset our count and timestamp since we're going to loop and it's OK
 					count = 0
 					started = time.Now()
