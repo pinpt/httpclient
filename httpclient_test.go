@@ -244,15 +244,31 @@ func TestNewHTTPClientRetryResponseError(t *testing.T) {
 	assert.Equal(http.StatusInternalServerError, resp.StatusCode)
 }
 
+type mockBody struct {
+	read   bool
+	closed bool
+}
+
+func (m *mockBody) Read(buf []byte) (int, error) {
+	m.read = true
+	return len(buf), io.EOF
+}
+func (m *mockBody) Close() error {
+	m.closed = true
+	return nil
+}
+
 func TestNewHTTPClientRetry(t *testing.T) {
 	assert := assert.New(t)
 	tc := &testClientRetry{
 		resps: []*http.Response{
 			&http.Response{
 				StatusCode: http.StatusInternalServerError,
+				Body:       &mockBody{},
 			},
 			&http.Response{
 				StatusCode: http.StatusGatewayTimeout,
+				Body:       &mockBody{},
 			},
 			&http.Response{
 				StatusCode: http.StatusOK,
@@ -275,6 +291,10 @@ func TestNewHTTPClientRetry(t *testing.T) {
 	buf, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(err)
 	assert.Equal("hi", string(buf))
+	assert.True(tc.resps[0].Body.(*mockBody).read)
+	assert.True(tc.resps[0].Body.(*mockBody).closed)
+	assert.True(tc.resps[1].Body.(*mockBody).read)
+	assert.True(tc.resps[1].Body.(*mockBody).closed)
 }
 
 func TestNewHTTPClientRetryCancelled(t *testing.T) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"io/ioutil"
 	"math"
 	"net/http"
 	"time"
@@ -144,6 +145,11 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 			}
 			if !c.config.Retryable.RetryResponse(resp) {
 				return resp, nil
+			}
+			// make sure we read all (if any) content and close the response stream as to not leak resources
+			if resp.Body != nil {
+				ioutil.ReadAll(resp.Body)
+				resp.Body.Close()
 			}
 		}
 		duration := c.config.Retryable.RetryDelay(count)

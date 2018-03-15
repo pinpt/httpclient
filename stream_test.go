@@ -10,8 +10,9 @@ import (
 )
 
 type testReader struct {
-	buf *bytes.Buffer
-	err error
+	buf    *bytes.Buffer
+	err    error
+	closed bool
 }
 
 func (r *testReader) Read(p []byte) (int, error) {
@@ -19,6 +20,7 @@ func (r *testReader) Read(p []byte) (int, error) {
 }
 
 func (r *testReader) Close() error {
+	r.closed = true
 	return r.err
 }
 
@@ -39,6 +41,9 @@ func TestMultiStream(t *testing.T) {
 	assert.Equal("hi", string(buf))
 	assert.NoError(stream.Close())
 	assert.Nil(stream.streams)
+	for _, s := range stream.streams {
+		assert.True(s.(*testReader).closed)
+	}
 }
 
 func TestMultiStreamCloseError(t *testing.T) {
