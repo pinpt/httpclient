@@ -60,6 +60,12 @@ func NewHTTPClient(ctx context.Context, config *Config, client Client) *HTTPClie
 	if client == nil {
 		client = http.DefaultClient
 	}
+	if config.Paginator == nil {
+		config.Paginator = NoPaginator()
+	}
+	if config.Retryable == nil {
+		config.Retryable = NewNoRetry()
+	}
 	return &HTTPClient{
 		config: config,
 		ctx:    ctx,
