@@ -1,33 +1,40 @@
 package httpclient
 
-import "io"
+import (
+	"bytes"
+	"io"
+	"io/ioutil"
+)
 
 // borrowed from https://golang.org/src/io/multi.go
 
 type multiReader struct {
-	streams []io.ReadCloser
+	streams []io.Reader
 }
 
 func newMuliReader() *multiReader {
 	return &multiReader{}
 }
 
-func (r *multiReader) Add(rc io.ReadCloser) {
+func (r *multiReader) Add(rc io.ReadCloser) error {
 	if r.streams == nil {
-		r.streams = make([]io.ReadCloser, 0)
+		r.streams = make([]io.Reader, 0)
 	}
-	r.streams = append(r.streams, rc)
+	// NOTE: we read all in memory which is terrible _but_ with load testing
+	// under windows, we get weird "wsasend: An existing connection was forcibly closed by the remote host."
+	// messages by keeping multiple connections open (>300)
+	buf, err := ioutil.ReadAll(rc)
+	if err != nil {
+		rc.Close()
+		return err
+	}
+	rc.Close()
+	r.streams = append(r.streams, bytes.NewReader(buf))
+	return nil
 }
 
 func (r *multiReader) Close() error {
-	if r.streams != nil {
-		for _, s := range r.streams {
-			if err := s.Close(); err != nil {
-				return err
-			}
-		}
-		r.streams = nil
-	}
+	r.streams = nil
 	return nil
 }
 

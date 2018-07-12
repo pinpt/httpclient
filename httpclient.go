@@ -124,7 +124,10 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 						streams = newMuliReader()
 					}
 					// remember our stream since we're going to need to return it instead
-					streams.Add(resp.Body)
+					if err := streams.Add(resp.Body); err != nil {
+						req.Close = true
+						return nil, err
+					}
 					// don't reuse this request again
 					req.Close = true
 					// assign our new request for the loop

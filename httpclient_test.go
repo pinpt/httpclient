@@ -273,7 +273,7 @@ func TestNewHTTPClientRetry(t *testing.T) {
 			&http.Response{
 				StatusCode: http.StatusOK,
 				Body: &testReader{
-					buf: bytes.NewBuffer([]byte("hi")),
+					buf: *bytes.NewBuffer([]byte("hi")),
 				},
 			},
 		},
