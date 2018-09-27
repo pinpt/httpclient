@@ -433,7 +433,6 @@ func TestBadRequestCall(t *testing.T) {
 	}
 	req, err := http.NewRequest(http.MethodPost, "/test", strings.NewReader("{"))
 	assert.NoError(err)
-	t.Log("URL>>", req.URL)
 	resp, err := client.Do(req)
 	assert.Error(err)
 	assert.NotNil(resp)
