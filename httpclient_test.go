@@ -410,3 +410,33 @@ func TestNewHTTPClientPaginationNone(t *testing.T) {
 	assert.Equal(http.StatusOK, resp.StatusCode)
 	assert.False(paged)
 }
+func TestBadRequestCall(t *testing.T) {
+	assert := assert.New(t)
+	tc := &testClient{}
+	var paged bool
+	p := &paginator{
+		paginate: func(page int, req *http.Request, resp *http.Response) (bool, *http.Request) {
+			paged = true
+			if page > 1 {
+				return false, nil
+			}
+			return true, &http.Request{}
+		},
+	}
+	config := NewConfig()
+	config.Paginator = p
+	client := NewHTTPClient(context.TODO(), config, tc)
+	assert.NotNil(client)
+	tc.resp = &http.Response{
+		StatusCode: http.StatusBadRequest,
+		Body:       &testReader{},
+	}
+	req, err := http.NewRequest(http.MethodPost, "/test", strings.NewReader("{"))
+	assert.NoError(err)
+	t.Log("URL>>", req.URL)
+	resp, err := client.Do(req)
+	assert.Error(err)
+	assert.NotNil(resp)
+	assert.Equal(http.StatusBadRequest, resp.StatusCode)
+	assert.False(paged)
+}

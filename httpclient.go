@@ -3,6 +3,7 @@ package httpclient
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"math"
@@ -152,6 +153,13 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 					resp.Body = streams
 				}
 				return resp, nil
+			}
+			if resp.StatusCode == http.StatusBadRequest {
+				t, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					return resp, err
+				}
+				return resp, fmt.Errorf("Bad request %s", string(t))
 			}
 			if !c.config.Retryable.RetryResponse(resp) {
 				return resp, nil
