@@ -146,7 +146,10 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 				resp.StatusCode == http.StatusMethodNotAllowed ||
 				resp.StatusCode == http.StatusPermanentRedirect ||
 				resp.StatusCode == http.StatusTemporaryRedirect ||
-				resp.StatusCode == http.StatusConflict {
+				resp.StatusCode == http.StatusConflict ||
+				resp.StatusCode == http.StatusRequestEntityTooLarge ||
+				resp.StatusCode == http.StatusRequestedRangeNotSatisfiable ||
+				resp.StatusCode == http.StatusRequestHeaderFieldsTooLarge {
 				// check to see if we have a multiple stream response (pagination)
 				if streams != nil && resp.Body != nil {
 					streams.Add(resp.Body)
