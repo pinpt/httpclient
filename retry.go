@@ -3,6 +3,7 @@ package httpclient
 import (
 	"math"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -64,5 +65,35 @@ func NewBackoffRetry(initialTimeout time.Duration, incrementingTimeout time.Dura
 		initialTimeout:      float64(initialTimeout / time.Millisecond),
 		incrementingTimeout: float64(incrementingTimeout),
 		maxTimeout:          float64(maxTimeout),
+	}
+}
+
+type JiraRetry struct {
+	backoffRetry Retryable
+}
+
+func (r *JiraRetry) RetryError(err error) bool {
+	if strings.Contains(err.Error(), "This Jira instance is currently under heavy load") {
+		return true
+	}
+	return r.backoffRetry.RetryError(err)
+}
+
+func (r *JiraRetry) RetryResponse(resp *http.Response) bool {
+	return r.backoffRetry.RetryResponse(resp)
+}
+
+func (r *JiraRetry) RetryDelay(retry int) time.Duration {
+	return r.backoffRetry.RetryDelay(retry)
+
+}
+
+func (r *JiraRetry) RetryMaxDuration() time.Duration {
+	return r.backoffRetry.RetryMaxDuration()
+}
+
+func NewJiraRetry() *JiraRetry {
+	return &JiraRetry{
+		NewBackoffRetry(10*time.Millisecond, 100*time.Millisecond, 3*time.Minute, 2.0),
 	}
 }
