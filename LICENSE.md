@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright © 2018 by PinPT, Inc.
+Copyright © 2018-2019 by Pinpoint Software, Inc.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -33,4 +33,4 @@ The httpclient package is very customizable.  You can pass in any implementation
 
 ## License
 
-Copyright &copy; 2018 by PinPT, Inc. MIT License. Pull requests welcome! 🙏🏻
+Copyright &copy; 2018-2019 by Pinpoint Software, Inc. MIT License. Pull requests welcome! 🙏🏻
