@@ -435,7 +435,8 @@ func TestBadRequestCall(t *testing.T) {
 	assert.NoError(err)
 	resp, err := client.Do(req)
 	assert.Error(err)
-	assert.NotNil(resp)
-	assert.Equal(http.StatusBadRequest, resp.StatusCode)
+	assert.Nil(resp)
 	assert.False(paged)
+	assert.IsType(&HTTPError{}, err)
+	assert.IsType(http.StatusBadRequest, err.(*HTTPError).StatusCode)
 }

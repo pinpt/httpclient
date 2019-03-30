@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -19,6 +20,18 @@ var ErrInvalidClientImpl = errors.New("httpclient: invalid response from Do")
 
 // this is a catch all that will prevent a Retryable going over a predefined threshold in case it has a bug
 const maxAttempts = 100
+
+// HTTPError is a struct which carries HTTP error details
+type HTTPError struct {
+	Body       []byte
+	StatusCode int
+	URL        *url.URL
+	Headers    http.Header
+}
+
+func (h *HTTPError) Error() string {
+	return fmt.Sprintf("HTTP Error (%d/%v)", h.StatusCode, h.URL)
+}
 
 // Config is the configuration for the HTTPClient
 type Config struct {
@@ -162,7 +175,17 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 				if err != nil {
 					return resp, err
 				}
-				return resp, fmt.Errorf("Bad request %s", string(t))
+				resp.Body.Close()
+				var url *url.URL
+				if resp.Request != nil {
+					url = resp.Request.URL
+				}
+				return nil, &HTTPError{
+					Body:       t,
+					StatusCode: resp.StatusCode,
+					Headers:    resp.Header,
+					URL:        url,
+				}
 			}
 			if !c.config.Retryable.RetryResponse(resp) {
 				return resp, nil
