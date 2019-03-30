@@ -162,30 +162,15 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 				resp.StatusCode == http.StatusConflict ||
 				resp.StatusCode == http.StatusRequestEntityTooLarge ||
 				resp.StatusCode == http.StatusRequestedRangeNotSatisfiable ||
-				resp.StatusCode == http.StatusRequestHeaderFieldsTooLarge {
+				resp.StatusCode == http.StatusRequestHeaderFieldsTooLarge ||
+				resp.StatusCode == http.StatusBadRequest ||
+				resp.StatusCode == http.StatusInternalServerError {
 				// check to see if we have a multiple stream response (pagination)
 				if streams != nil && resp.Body != nil {
 					streams.Add(resp.Body)
 					resp.Body = streams
 				}
 				return resp, nil
-			}
-			if resp.StatusCode == http.StatusBadRequest {
-				t, err := ioutil.ReadAll(resp.Body)
-				if err != nil {
-					return resp, err
-				}
-				resp.Body.Close()
-				var url *url.URL
-				if resp.Request != nil {
-					url = resp.Request.URL
-				}
-				return nil, &HTTPError{
-					Body:       t,
-					StatusCode: resp.StatusCode,
-					Headers:    resp.Header,
-					URL:        url,
-				}
 			}
 			if !c.config.Retryable.RetryResponse(resp) {
 				return resp, nil
