@@ -164,6 +164,7 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 				resp.StatusCode == http.StatusRequestedRangeNotSatisfiable ||
 				resp.StatusCode == http.StatusRequestHeaderFieldsTooLarge ||
 				resp.StatusCode == http.StatusBadRequest ||
+				resp.StatusCode == http.StatusUnprocessableEntity ||
 				resp.StatusCode == http.StatusInternalServerError {
 				// check to see if we have a multiple stream response (pagination)
 				if streams != nil && resp.Body != nil {
@@ -186,13 +187,9 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 			remaining := math.Min(float64(maxDuration-time.Since(started)), float64(duration))
 			select {
 			case <-c.ctx.Done():
-				{
-					return nil, context.Canceled
-				}
+				return nil, context.Canceled
 			case <-time.After(time.Duration(remaining)):
-				{
-					continue
-				}
+				continue
 			}
 		}
 	}
