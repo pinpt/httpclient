@@ -71,6 +71,7 @@ func NewHTTPClient(ctx context.Context, config *Config, client Client) *HTTPClie
 	fmt.Println("Just testing the codacy integration")
 	fmt.Println("added new line")
 	fmt.Println("added new line")
+	fmt.Println("added new line")
 	if config == nil {
 		config = NewConfig()
 	}
