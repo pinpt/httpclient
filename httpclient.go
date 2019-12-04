@@ -69,6 +69,7 @@ func NewHTTPClientDefault() *HTTPClient {
 // NewHTTPClient returns a configured HTTPClient instance
 func NewHTTPClient(ctx context.Context, config *Config, client Client) *HTTPClient {
 	fmt.Println("Just testing the codacy integration")
+	fmt.Println("added new line")
 	if config == nil {
 		config = NewConfig()
 	}
