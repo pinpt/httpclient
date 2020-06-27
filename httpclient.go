@@ -12,6 +12,9 @@ import (
 	"time"
 )
 
+// Debug when true will print additional retry details to console
+var Debug = false
+
 // ErrRequestTimeout is an error that's returned when the max timeout is reached for a request
 var ErrRequestTimeout = errors.New("httpclient: timeout")
 
@@ -116,18 +119,30 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	started := time.Now()
 	maxDuration := c.config.Retryable.RetryMaxDuration()
 	req = req.WithContext(c.ctx)
+	if Debug {
+		fmt.Printf("httpclient: Do starting %v with maxDuration=%v\n", req.URL, maxDuration)
+	}
 	for time.Since(started) < maxDuration && count+1 < maxAttempts {
 		count++
 		page++
+		if Debug {
+			fmt.Printf("httpclient: Do sending request %v, count=%d, page=%d\n", req.URL, count, page)
+		}
 		resp, err := c.c.Do(req)
 		if resp == nil && err == nil {
 			return nil, ErrInvalidClientImpl
 		}
 		if err != nil {
+			if Debug {
+				fmt.Printf("httpclient: Do result %v returned, err=%v\n", req.URL, err)
+			}
 			if !c.config.Retryable.RetryError(err) {
 				return nil, err
 			}
 		} else {
+			if Debug {
+				fmt.Printf("httpclient: Do result %v returned, status=%v\n", req.URL, resp.StatusCode)
+			}
 			// if OK and a GET request type, see if we need to paginate
 			if resp.StatusCode == http.StatusOK && req.Method == http.MethodGet {
 				if ok, newreq := c.config.Paginator.HasMore(page, req, resp); ok {
@@ -185,6 +200,9 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 		duration := c.config.Retryable.RetryDelay(count)
 		if duration > 0 {
 			remaining := math.Min(float64(maxDuration-time.Since(started)), float64(duration))
+			if Debug {
+				fmt.Printf("httpclient: Do retry %v duration=%v, remaining=%v\n", req.URL, duration, remaining)
+			}
 			select {
 			case <-c.ctx.Done():
 				return nil, context.Canceled
@@ -192,6 +210,9 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 				continue
 			}
 		}
+	}
+	if Debug {
+		fmt.Printf("httpclient: Do timed out %v after %v\n", req.URL, time.Since(started))
 	}
 	return nil, ErrRequestTimeout
 }
